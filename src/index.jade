@@ -1,0 +1,17 @@
+doctype
+html(lang="en")
+  head
+    meta(charset="utf-8")
+    meta(name="viewport", content="width=device-width, initial-scale=1")
+    title POC
+    link(rel="stylesheet", type="text/css", href!="/css/main-<!-- @echo VERSION -->.css")
+    | <!-- @if ENV='development' -->
+    script(src!="/js/libs-<!-- @echo VERSION -->.js")
+    script(src!="/js/src-<!-- @echo VERSION -->.js")
+    | <!-- @endif -->
+
+    | <!-- @if ENV='production' -->
+    script(src!="/js/main-<!-- @echo VERSION -->.js", async)
+    | <!-- @endif -->
+
+  body
