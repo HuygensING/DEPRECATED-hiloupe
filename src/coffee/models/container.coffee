@@ -1,16 +1,20 @@
 Model = require 'ampersand-state'
-# xhr = require 'funcky.req'
-# eventEmitter = require '../utils/event-emitter'
 
 Container = Model.extend
+
   session:
     width: 'number'
     height: 'number'
+    top: 'number'
+    left: 'number'
+    bottom: 'number'
+    right: 'number'
 
   derived:
     surface:
       deps: ['width', 'height']
-      fn: -> @width * @height
+      fn: ->
+      	@width * @height
 
 
 

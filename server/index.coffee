@@ -3,6 +3,7 @@ bodyParser = require 'body-parser'
 _ = require 'underscore'
 gm = require 'gm'
 fs = require 'fs'
+path = require 'path'
 Generator = require './generator'
 
 app = express()
@@ -40,9 +41,11 @@ createMatrix = (id, boxSize, width, height, partSize) ->
   matrix
 
 app.post '/init', (req, res) ->
-  {containerWidth, containerHeight, level, id} = req.body
+  {containerWidth, containerHeight, level, imgPath} = req.body
 
-  gm("../compiled/images/#{id}.jpg")
+  id = path.basename(imgPath, path.extname(imgPath))
+
+  gm("../compiled/images/facsimiles/#{imgPath}")
     .options(imageMagick: true)
     .size (err, originDim) ->
       return console.log err if err?

@@ -1,9 +1,12 @@
 fs = require 'fs'
 path = require 'path'
+util = require 'util'
 gm = require 'gm'
 async = require 'async'
+EventEmitter = require('events').EventEmitter
 
-class Generator
+
+class Generator extends EventEmitter
 
 	constructor: (baseDir, imgPath, partSize=240) ->
 		@partSize = partSize
@@ -13,7 +16,7 @@ class Generator
 
 	generate: (baseDir, imgPath) ->
 		# Create the output dir. Name of the dir is the basename of the image.
-		id = path.basename(imgPath, '.jpg')
+		id = path.basename(imgPath, path.extname(imgPath))
 		outputDir = "#{baseDir}/#{id}"
 		fs.mkdirSync outputDir
 
@@ -23,7 +26,8 @@ class Generator
 
 			@writeBaseImages outputDir, imgPath, sizes, =>
 				@writeParts outputDir, sizes, width, height, =>
-					console.log "DONE!"
+					console.log "DONE! #{outputDir}"
+					@emit 'done'
 			
 	writeParts: (outputDir, boxSizes, width, height, done) ->
 		write = (boxSize, cb) =>
@@ -34,7 +38,7 @@ class Generator
 			rows = Math.ceil(boxDim.height/@partSize)
 			columns = Math.ceil(boxDim.width/@partSize)
 
-			console.log boxSize, rows, columns
+			# console.log boxSize, rows, columns
 
 			async.eachSeries [0...columns], ((column, columnDone) =>
 				async.eachSeries [0...rows], ((row, rowDone) =>
@@ -58,7 +62,7 @@ class Generator
 				), -> columnDone()
 			), ->  cb()
 
-		async.each boxSizes, write, done
+		async.eachSeries boxSizes, write, done
 
 	writeBaseImages: (outputDir, imgPath, boxSizes, done) ->
 		write = (boxSize, cb) =>
@@ -70,7 +74,7 @@ class Generator
 					console.log "Written BASE: #{outputDir}/#{boxSize}.jpg"
 					cb())
 
-		async.each boxSizes, write, done
+		async.eachSeries boxSizes, write, done
 		
 
 	# @param {int} width - Width of the original image.

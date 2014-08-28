@@ -113,17 +113,5 @@ App = React.createClass
 		# @figures.each (figure) ->
 		# 	figure[zoomMethod]()
 
-	addListeners: ->
-		@getDOMNode().addEventListener 'mousewheel', @handleMousewheel
-
-		@getDOMNode().addEventListener 'mousedown', (ev) =>
-			@figures.active().startDrag ev
-
-		@getDOMNode().addEventListener 'mousemove', (ev) =>
-			@figures.active().mousePageX = ev.pageX
-			@figures.active().mousePageY = ev.pageY
-
-		@getDOMNode().addEventListener 'mouseup', => 
-			@figures.active().drag = false
-
+	
 module.exports = App

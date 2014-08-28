@@ -105,18 +105,19 @@ gulp.task 'watch', ->
 
 createBundle = (watch=false) ->
   args =
-    entries: './src/coffee/index.cjsx'
-    extensions: ['.cjsx', '.coffee']
+    entries: './src/coffee/index.coffee'
+    extensions: ['.coffee']
     debug: true
 
   bundler = if watch then watchify(args) else browserify(args)
 
-#  bundler.transform('coffeeify')
-  bundler.transform('coffee-reactify')
+  bundler.transform('coffeeify')
+  # bundler.transform('coffee-reactify')
   bundler.transform('envify')
 
-  bundler.exclude 'underscore'
-  bundler.exclude 'react'
+  bundler.exclude 'ampersand-state'
+  bundler.exclude 'ampersand-collection'
+  bundler.exclude 'ampersand-view'
 
   rebundle = ->
     gutil.log('Watchify rebundling') if watch
@@ -136,8 +137,9 @@ gulp.task 'watchify', -> createBundle true
 
 gulp.task 'browserify-libs', ->
   libs =
-    underscore: './node_modules/underscore/underscore'
-    react: './node_modules/react/react'
+    'ampersand-state': './node_modules/ampersand-state/ampersand-state'
+    'ampersand-collection': './node_modules/ampersand-collection/ampersand-collection'
+    'ampersand-view': './node_modules/ampersand-view/ampersand-view'
 
   paths = Object.keys(libs).map (key) -> libs[key]
 
