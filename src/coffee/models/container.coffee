@@ -16,6 +16,4 @@ Container = Model.extend
       fn: ->
       	@width * @height
 
-
-
 module.exports = Container

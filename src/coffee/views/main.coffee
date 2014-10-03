@@ -9,48 +9,52 @@ View = require 'ampersand-view'
 LevelView = require './level'
 
 Main = View.extend
-	initialize: (@options) ->
+
+	# @param parent (el) the parent of hiloupe. Needed for calcing the size.
+	# @param imgPath (str) the path of the img.
+	# @param debug (bool) show debug div.
+	initialize: (@options={}) ->
+		throw new ReferenceError('[HiLoupe] @options.imgPath missing!') unless @options.imgPath?
+
 		@options.debug ?= false
 
 		@collection = new Levels()
 
-		@containerBox = funckyEl(@parent).boundingBox()
-
-		data = JSON.stringify
-			imgPath: @options.imgPath
-			containerWidth: @containerBox.width
-			containerHeight: @containerBox.height
-			level: 0
-
-		req = funckyReq.post 'hiloupe/init', data: data
-
-		req.done (res) =>
-			data = JSON.parse(res.response).data
+		req = funckyReq.get "#{@options.imgPath}/metadata.json"
+		req.done (xhr) =>
+			data = JSON.parse(xhr.response)
 			
 			@renderLevels data
 
-			@collection.active().active = true
-
 		window.addEventListener 'resize', =>
 			box = funckyEl(@parent).boundingBox()
-			# @container.set box
 			@collection.each (level) -> level.set container: box
-
 
 		@render()
 
-	renderLevels: (data) ->		
-		data.forEach (levelData, levelNo) =>
-			level = new Level
-				imgPaths: levelData.sources
-				level: levelNo
-				container: @containerBox
-				initWidth: levelData.width
-				initHeight: levelData.height
+	renderLevels: (data) ->
+		containerBox = funckyEl(@parent).boundingBox()
 
-			@collection.add level
+		data.levels.forEach (levelData, levelNo) =>
+			if containerBox.width > containerBox.height
+				fit = containerBox.height < levelData.height
+			else
+				fit = containerBox.width < levelData.width
+
+			if fit
+				level = new Level
+					imgPath: @options.imgPath
+					partSize: data.partSize
+					level: levelNo
+					container: containerBox
+					initWidth: levelData.width
+					initHeight: levelData.height
+
+				@collection.add level
 
 		@renderCollection @collection, LevelView, @el
+
+		@collection.active().active = true
 
 	render: ->
 		@el = document.createElement 'div'

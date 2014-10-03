@@ -11,6 +11,9 @@ Level = View.extend
 		@model.on 'change:scale', (model, scale) =>
 			@el.style.transform = "scale(#{scale})"
 
+			# iPad compatible.
+			@el.style.WebkitTransform = "scale(#{scale})"
+
 		@model.on 'change:active', (model, value) =>
 			func = if value then 'add' else 'remove'
 			@el.classList[func] 'active'
@@ -22,28 +25,33 @@ Level = View.extend
 			func = if value then 'add' else 'remove'
 			@el.classList[func] 'visible'
 
-		# @model.on 'activated', (model) =>
-		# 	@el.style.transform = "scale(#{model.scale})"
-		# 	@el.style.left = "#{model.left}px"
-		# 	@el.style.top = "#{model.top}px"
-
 	render: ->
 		@el = document.createElement 'figure'
 		@el.setAttribute 'data-level', @model.level
 
-		@model.imgPaths.forEach (column, columnNo) =>
+		for row in [0...@model.rows]
 			div = document.createElement 'div'
 			div.className = 'row'
 
-			column.forEach (row, rowNo) =>
+			for column in [0...@model.columns]
 				img = document.createElement 'img'
-				img.id = "id-#{@model.level}-#{rowNo}-#{columnNo}"
+				img.id = @model.getImgId(row, column)
 				img.setAttribute 'draggable', false
-				img.src = "images/blank.gif"
+				img.src = "/images/blank.gif"
 
 				div.appendChild img
 
+
 			@el.appendChild div
+
+		@boundTouchStart = @onTouchStart.bind(@)
+		@boundTouchMove = @onTouchMove.bind(@)
+		@boundTouchEnd = @onTouchEnd.bind(@)
+		@boundGestureChange = @onGestureChange.bind(@)
+		@el.addEventListener 'touchstart', @boundTouchStart
+		@el.addEventListener 'touchmove', @boundTouchMove
+		@el.addEventListener 'touchend', @boundTouchEnd
+		@el.addEventListener 'gesturechange', @boundGestureChange
 
 		@
 
@@ -52,7 +60,6 @@ Level = View.extend
 		'mouseup': 'onMouseUp'
 		'mousemove': 'onMouseMove'
 		'mousedown': 'onMouseDown'
-		'gesturechange': -> console.log arguments
 
 	onMouseWheel: (ev) ->
 		func = if ev.wheelDeltaY > 0 then 'zoomIn' else 'zoomOut'
@@ -65,8 +72,37 @@ Level = View.extend
 	onMouseMove: (ev) ->
 		@model.mouseMove ev.pageX, ev.pageY
 
-	onMouseUp: ->
+	onMouseUp: (ev) ->
 		@model.stopDrag()
 
+	onTouchStart: (ev) ->
+		@model.startDrag ev.pageX, ev.pageY
+
+	onTouchMove: (ev) ->
+		@model.mouseMove ev.pageX, ev.pageY
+
+	onTouchEnd: (ev) ->
+		@model.stopDrag()
+
+	onGestureChange: (ev) ->
+		ev.preventDefault()
+
+		if ev.scale < 1.0
+			func = 'zoomIn'
+		else if ev.scale > 1.0
+			func = 'zoomOut'
+
+		@model[func] ev.pageX, ev.pageY
+
+	remove: ->
+		@el.removeEventListener 'touchstart', @boundTouchStart
+		@el.removeEventListener 'touchmove', @boundTouchMove
+		@el.removeEventListener 'touchend', @boundTouchEnd
+		@el.removeEventListener 'gesturechange', @boundGestureChange
+
+		@stopListening()
+		
+		if @el.parentNode?
+			@el.parentNode.removeChild @el
 
 module.exports = Level

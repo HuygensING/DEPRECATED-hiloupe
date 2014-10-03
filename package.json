@@ -5,7 +5,7 @@
     "name": "Gijsjan Brouwer",
     "email": "gijsjan.brouwer@huygens.knaw.nl"
   },
-  "main": "src/coffee/main",
+  "main": "./dist/hiloupe.js",
   "repository": {
     "type": "git",
     "url": ""

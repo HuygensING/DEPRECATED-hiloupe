@@ -20,8 +20,8 @@ getClosestSize = (sizes, width, height, originRatio) ->
 
   sizes[i] ? sizes[sizes.length - 1]
 
-createMatrix = (id, boxSize, width, height, partSize) ->
-  console.log id, boxSize, width, height, partSize
+createMatrix = (imgPath, boxSize, width, height, partSize) ->
+  console.log imgPath, boxSize, width, height, partSize
   rows = Math.ceil(width/partSize)
   columns = Math.ceil(height/partSize)
 
@@ -34,7 +34,7 @@ createMatrix = (id, boxSize, width, height, partSize) ->
       x = row*partSize
       y = column*partSize
 
-      url = "/images/generated/#{id}/#{boxSize}/#{x}-#{y}.jpg"
+      url = "/images/generated/#{imgPath}/#{boxSize}/#{x}-#{y}.jpg"
 
       matrix[column][row] = url
 
@@ -43,7 +43,7 @@ createMatrix = (id, boxSize, width, height, partSize) ->
 app.post '/init', (req, res) ->
   {containerWidth, containerHeight, level, imgPath} = req.body
 
-  id = path.basename(imgPath, path.extname(imgPath))
+  # TODO check if imgPath exists
 
   gm("../compiled/images/facsimiles/#{imgPath}")
     .options(imageMagick: true)
@@ -62,7 +62,7 @@ app.post '/init', (req, res) ->
         boxDim = generator.boxSizeDimensions boxSize, originDim.width, originDim.height
 
         data =
-          sources: createMatrix id, boxSize, boxDim.width, boxDim.height, generator.partSize
+          sources: createMatrix imgPath, boxSize, boxDim.width, boxDim.height, generator.partSize
           width: boxDim.width
           height: boxDim.height
 

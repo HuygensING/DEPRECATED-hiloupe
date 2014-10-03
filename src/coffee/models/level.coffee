@@ -28,13 +28,20 @@ Level = Model.extend
 
 		lastVisibleColumn = firstVisibleColumn + Math.ceil(horMin/partSize)
 
-		lastVisibleColumn = @imgPaths[0].length - 1 if lastVisibleColumn > @imgPaths[0].length - 1
-		lastVisibleRow = @imgPaths.length - 1 if lastVisibleRow > @imgPaths.length - 1
+		lastVisibleColumn = @columns - 1 if lastVisibleColumn > @columns - 1
+		lastVisibleRow = @rows - 1 if lastVisibleRow > @rows - 1
 
 		for row in [firstVisibleRow..lastVisibleRow]
 			for column in [firstVisibleColumn..lastVisibleColumn]
-				el = document.getElementById "id-#{@level}-#{column}-#{row}"		
-				el.src = @imgPaths[row][column]
+				el = document.getElementById @getImgId row, column
+
+				y = row * @partSize
+				x = column * @partSize
+
+				try
+					el.src = "#{@imgPath}/#{@boxSize}/#{x}-#{y}.jpg"
+				catch error
+					console.log "#{@imgPath}/#{@boxSize}/#{x}-#{y}.jpg | #{error}"
 
 	initialize: ->
 		@on 'change:container.height', (model, value) =>
@@ -86,8 +93,10 @@ Level = Model.extend
 		active: 'boolean'
 		level: 'number'
 		imgPaths: 'array'
+		imgPath: 'string'
 		drag: 'object'
 		# container: 'object'
+		partSize: 'number'
 		initWidth: 
 			type: 'number'
 			default: 0
@@ -127,6 +136,21 @@ Level = Model.extend
 					scale = 1 if scale > 1
 
 					scale
+
+		columns:
+			deps: ['initWidth', 'partSize']
+			fn: ->
+				Math.ceil @initWidth/@partSize
+
+		rows:
+			deps: ['initHeight', 'partSize']
+			fn: ->
+				Math.ceil @initHeight/@partSize
+
+		boxSize:
+			deps: ['initWidth', 'initHeight']
+			fn: ->
+				Math.max @initWidth, @initHeight
 
 	zoomIn: (pageX, pageY) ->
 		# console.log 'zoomin'
@@ -188,5 +212,7 @@ Level = Model.extend
 			else if @left > @container.width - @width
 				@left = @container.width - @width
 
+	getImgId: (row, column) ->
+		"id-#{@level}-#{row*@partSize}-#{column*@partSize}"
 
 module.exports = Level
