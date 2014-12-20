@@ -43,33 +43,35 @@ createMatrix = (imgPath, boxSize, width, height, partSize) ->
 app.post '/init', (req, res) ->
   {containerWidth, containerHeight, level, imgPath} = req.body
 
+  console.log containerHeight, containerWidth, level, imgPath
+
   # TODO check if imgPath exists
 
-  gm("../compiled/images/facsimiles/#{imgPath}")
-    .options(imageMagick: true)
-    .size (err, originDim) ->
-      return console.log err if err?
+  # gm("../compiled/images/facsimiles/#{imgPath}")
+  #   .options(imageMagick: true)
+  #   .size (err, originDim) ->
+  #     return console.log err if err?
 
-      generator = new Generator()
-      boxSizes = generator.getSizes(originDim.width, originDim.height)
-      lowestBoxSize = getClosestSize boxSizes, containerWidth, containerHeight, originDim.width/originDim.height
-      lowestBoxDim = generator.boxSizeDimensions lowestBoxSize, originDim.width, originDim.height
+  #     generator = new Generator()
+  #     boxSizes = generator.getSizes(originDim.width, originDim.height)
+  #     lowestBoxSize = getClosestSize boxSizes, containerWidth, containerHeight, originDim.width/originDim.height
+  #     lowestBoxDim = generator.boxSizeDimensions lowestBoxSize, originDim.width, originDim.height
 
-      matrices = []
+  #     matrices = []
 
-      for i in [boxSizes.indexOf(lowestBoxSize)...boxSizes.length]
-        boxSize = boxSizes[i]
-        boxDim = generator.boxSizeDimensions boxSize, originDim.width, originDim.height
+  #     for i in [boxSizes.indexOf(lowestBoxSize)...boxSizes.length]
+  #       boxSize = boxSizes[i]
+  #       boxDim = generator.boxSizeDimensions boxSize, originDim.width, originDim.height
 
-        data =
-          sources: createMatrix imgPath, boxSize, boxDim.width, boxDim.height, generator.partSize
-          width: boxDim.width
-          height: boxDim.height
+  #       data =
+  #         sources: createMatrix imgPath, boxSize, boxDim.width, boxDim.height, generator.partSize
+  #         width: boxDim.width
+  #         height: boxDim.height
 
-        matrices.push data
+  #       matrices.push data
 
-      res.send 
-        data: matrices
+  #     res.send 
+  #       data: matrices
 
 app.listen 3000
 console.log 'Staging server listening on 3000'

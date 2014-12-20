@@ -1,38 +1,29 @@
 from PIL import Image
 from operator import itemgetter
 import sys, os, time, numpy, json
+from urllib.parse import urljoin
 
 class ImageGenerator(object):
 	""" Generate image parts for the Hiloupe zoom tool
 	
 	Attributes:
-		inputFile: the base file to cut up in parts. Can have a dir.
-		inputBase: the base dir for the input file. inputBase + inputFile = input image path.
-		outputBase: the base dir for the output file. outputBase + inputFile = output image path.
+		inputPath: the base file to cut up in parts. Can have a dir.
+		outputDir: the base dir for the output file. outputDir + inputPath = output image path.
 		partSize: the size (lxb) of the image parts.
 	"""
 
-	def __init__(self, inputFile, inputBase='', outputBase='generated', partSize=240):
-
+	def __init__(self, inputPath, outputDir='generated', partSize=240):
+		self.fileName = os.path.basename(inputPath)
 		self.partSize = partSize
-
-		# Add a slash to inputBase if it isn't given.
-		if inputBase[-1] != '/':
-			inputBase = inputBase + '/'
-
-		# Add a slash to outputBase if it isn't given.
-		if outputBase[-1] != '/':
-			outputBase = outputBase + '/'
+		self.outputDir = outputDir
 
 		def imageLoaded():
 			start = time.time()
 
 			# Set the output file path and create it if necessary.
-			self.baseDir = outputBase+inputFile+"/"
-			if not os.path.exists(self.baseDir):
-				os.makedirs(self.baseDir)
-
-			print self.baseDir
+			self.baseDir = outputDir+inputPath+"/"
+			if not os.path.exists(self.outputDir):
+				os.makedirs(self.outputDir)
 
 			baseImages = self.generateBaseImages()
 
@@ -44,10 +35,10 @@ class ImageGenerator(object):
 
 		# Open the image.
 		try:
-			self.im = Image.open(inputBase + inputFile)
+			self.im = Image.open(inputPath)
 			imageLoaded()
 		except IOError:
-			print "Image not found: "+inputFile
+			print("Image not found: "+inputPath)
 
 	def getBoxSizes(self):
 		i = 0
@@ -79,18 +70,18 @@ class ImageGenerator(object):
 
 	def generateCroppedImages(self, baseImages):
 		for boxSize, baseImg in baseImages.items():
-			boxDir = self.baseDir+str(boxSize)
+			boxDir = self.outputDir+'/'+self.fileName+'/'+str(boxSize)
 			if not os.path.exists(boxDir):
 				os.makedirs(boxDir)
 
-			columns = xrange(0, baseImg.size[0], self.partSize)
-			rows = xrange(0, baseImg.size[1], self.partSize)
+			columns = range(0, baseImg.size[0], self.partSize)
+			rows = range(0, baseImg.size[1], self.partSize)
 
 			for columnIndex, column in enumerate(columns):
 				for rowIndex, row in enumerate(rows):
 					box = (column, row, column+self.partSize, row+self.partSize)
 					region = baseImg.crop(box)
-					region.save(self.baseDir+str(boxSize)+"/"+str(column)+"-"+str(row)+".jpg")
+					region.save(boxDir+"/"+str(column)+"-"+str(row)+".jpg")
 
 			print("DONE: "+str(boxSize))
 
@@ -113,6 +104,6 @@ class ImageGenerator(object):
 		# so the index equals the level.
 		metadata['levels'] = sorted(metadata['levels'], key=itemgetter('width'))
 
-		jsonFile = open(self.baseDir+"metadata.json", "w")
+		jsonFile = open(self.outputDir+'/'+self.fileName+'/metadata.json', "w")
 		jsonFile.write(json.dumps(metadata))
 		jsonFile.close()
